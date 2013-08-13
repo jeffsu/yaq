@@ -1,0 +1,27 @@
+{
+  "name": "yaq",
+  "version": "0.0.0",
+  "description": "Yet Another Queue",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "lua": "lua"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.6.3"
+  },
+  "dependencies": {
+    "uuid": "~1.4.1",
+    "redis": "~0.8.4",
+    "express": "~3.3.4",
+    "socket.io": "~0.9.16",
+    "async": "~0.2.9",
+    "jade": "~0.34.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "jasmine-node --coffee --forceexit --captureExceptions spec/"
+  },
+  "author": "Jeff Su",
+  "license": "MIT"
+}

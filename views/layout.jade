@@ -1,0 +1,33 @@
+!!!5
+html
+  head
+    link(href="/bootstrap/css/bootstrap.min.css", type="text/css", rel="stylesheet")
+
+    block styles
+
+  body(style="padding-top: 50px")
+    .navbar.navbar-inverse.navbar-fixed-top
+      .container
+        a.navbar-brand Yaq
+        .nav-collapse.collapse
+          ul.nav.navbar-nav
+            li: a(href="/domains/nba") NBA
+            li: a(href="/processes") Processes
+            li: a#jobs(href="#") 
+
+          ul.nav#servers.unstyled(style="position: absolute; right: 4px; top: 4px")
+
+    .container
+      block sub-nav
+      block content
+
+  script(src="/jquery.js")
+  script(src="/d3.js")
+  script(src="/socket.io/socket.io.js")
+  :coffeescript
+    window.SOCKET = io.connect()
+  script(src="/jade.js")
+  script(src="/javascripts/servers.js")
+  script(src="/javascripts/jobs.js")
+    
+  block scripts
