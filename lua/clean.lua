@@ -20,7 +20,6 @@ for i, id in pairs(timeout_ids) do
     redis.call('publish', name..':retried', id)
   else
     redis.call('zadd', name..':failed', now, id)
-
     redis.call('publish', name..':failed', id)
   end
 end

@@ -20,19 +20,19 @@ if err then
     local retries  = redis.call('hincrby', name..':retries', id, -1)
     local priority = redis.call('hget', name..':priority', id)
     redis.call('zadd', name..':queued', priority, id)
-    redis.call('pubsub', name..':retried', id)
+    redis.call('publish', name..':retried', id)
 
   -- put on failed list
   else
     redis.call('zadd', name..':failed', now, id)
-    redis.call('pubsub', name..':failed', id)
+    redis.call('publish', name..':failed', id)
   end
 
 -- success
 else
 
   redis.call('zadd', name..':completed', now, id)
-  redis.call('pubsub', name..':completed', id)
+  redis.call('publish', name..':completed', id)
 end
 
 return 1

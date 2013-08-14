@@ -1,4 +1,6 @@
-uuid = require 'uuid'
+uuid           = require 'uuid'
+{EventEmitter} = require 'events'
+
 code = require './code'
 
 PRIORITIES =
@@ -9,7 +11,7 @@ PRIORITIES =
 LONGTIME = 1000 * 60 * 60 * 24
 NOOP = ->
 
-class Job
+class Job extends EventEmitter
   constructor: (@q, options) ->
     # everything that is needed to wrap up to redis
     @me = {}
@@ -49,6 +51,7 @@ class Job
   finish: (err=null, cb=NOOP) ->
     @q.redis.eval code.finish, 4, @q.name, @id, Date.now(), err, (err, res) ->
       cb(err, res == 1)
+
 
 Job.find = (q, id, cb) ->
   q.redis.eval code.find, 2, q.name, id, (err, results) ->

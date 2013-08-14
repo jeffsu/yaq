@@ -1,11 +1,12 @@
 redis          = require 'redis'
 {EventEmitter} = require 'events'
+async          = require 'async'
 
-os     = require 'os'
-code   = require './code'
-Job    = require './job'
+os      = require 'os'
+code    = require './code'
+Job     = require './job'
 
-VALID_MESSAGES =
+CHANNELS =
   queued:     true
   completed:  true
   retried:    true
@@ -16,6 +17,8 @@ VALID_MESSAGES =
 HOSTNAME = os.hostname()
 PID      = process.pid
 
+WATCH_INTERVAL = 5000
+
 NOOP = ->
 
 
@@ -25,18 +28,47 @@ class Queue
 
     @redis  = @createRedis(options)
     @pubsub = @createRedis(options)
+    @pubsub.on 'message', (ch, data) => @handleMessage(ch, data)
 
     @redis.dbug_mode = true
     @redis.sadd 'yaq:queues', @name, NOOP
 
-    @emitter = new EventEmitter
+    @emitter  = new EventEmitter
     @listened = {}
+    @toStop   = []
 
   createRedis: (options) ->
     if options.createRedis
       return options.createRedis()
     else
       return redis.createClient()
+
+  # todo, pubsub to preempt
+  watchProcess: (jobFn) ->
+    if arguments[1]
+      n     = arguments[0]
+      jobFn = arguments[1]
+    else
+      n = 1
+
+    running = true
+    test    = -> running
+
+    fn = (next) =>
+      @process (err, job) ->
+        if job
+          job.once 'finish', next
+          jobFn(job)
+        else
+          setTimeout(next, WATCH_INTERVAL)
+
+    for i in [ 1 .. n ]
+      async.whilst fn, test, NOOP
+
+    @toStop.push -> running = false
+
+  stop: ->
+    fn() for fn in @toStop
 
   counts: (cb) ->
     m = @redis.multi()
@@ -82,14 +114,17 @@ class Queue
   find: (id, cb) ->
     Job.find(@, id, cb)
 
+  handleMessage: (channel, data) ->
+    if m = channel.match(/^(\w+):(.*)$/)
+      @emit m[1], m[2]
+
   on: ->
     message = arguments[0]
     @emitter.on.apply(@emitter, arguments)
 
-    unless @listened[message]
+    if CHANNELS[message] && !@listened[message]
       @listened[message] = true
-      @pubsub.subscribe "#{@name}:#{message}", (data) =>
-        @emit message, data
+      @pubsub.subscribe "#{@name}:#{message}"
 
   emit: ->
     @emitter.emit.apply(@emitter, arguments)
