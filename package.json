@@ -5,7 +5,9 @@
   "main": "lib/index.js",
   "directories": {
     "lib": "lib",
-    "lua": "lua"
+    "lua": "lua",
+    "public": "public",
+    "views": "views"
   },
   "devDependencies": {
     "coffee-script": "~1.6.3"

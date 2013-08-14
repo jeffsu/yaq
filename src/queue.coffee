@@ -5,42 +5,46 @@ os     = require 'os'
 code   = require './code'
 Job    = require './job'
 
+VALID_MESSAGES =
+  queued:     true
+  completed:  true
+  retried:    true
+  failed:     true
+  timeout:    true
+  processing: true
+
 HOSTNAME = os.hostname()
 PID      = process.pid
-ATTRS    = [ 'data', 'failures', 'progress' ]
+
 NOOP = ->
 
-###
-Redis Data
-name:all        sorted set
-name:queued     sorted set
-name:processing sorted set
-name:failed     sorted set
-name:completed  sorted set
-name:data       hash
-
-name:<id>:log list
-###
 
 class Queue
   constructor: (@name, options) ->
     @retries = options.retries || 0
 
-    @redis   = redis.createClient()
-    @pubsub  = redis.createClient()
+    @redis  = @createRedis(options)
+    @pubsub = @createRedis(options)
 
     @redis.dbug_mode = true
     @redis.sadd 'yaq:queues', @name, NOOP
 
-    @ee = new EventEmitter
+    @emitter = new EventEmitter
+    @listened = {}
+
+  createRedis: (options) ->
+    if options.createRedis
+      return options.createRedis()
+    else
+      return redis.createClient()
 
   counts: (cb) ->
     m = @redis.multi()
 
     m.zcard(@name + ':queued')
     m.zcard(@name + ':processing')
-    m.scard(@name + ':failed')
-    m.scard(@name + ':completed')
+    m.zcard(@name + ':failed')
+    m.zcard(@name + ':completed')
 
     m.exec (err, results) ->
       return cb(err) if err
@@ -79,7 +83,16 @@ class Queue
     Job.find(@, id, cb)
 
   on: ->
-    @ee.on.apply(@ee, arguments)
+    message = arguments[0]
+    @emitter.on.apply(@emitter, arguments)
+
+    unless @listened[message]
+      @listened[message] = true
+      @pubsub.subscribe "#{@name}:#{message}", (data) =>
+        @emit message, data
+
+  emit: ->
+    @emitter.emit.apply(@emitter, arguments)
 
 
 module.exports = Queue

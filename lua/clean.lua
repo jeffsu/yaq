@@ -15,9 +15,12 @@ for i, id in pairs(timeout_ids) do
     local priority = redis.call('hget', name..':priority', id)
     redis.call('hincrby', name..':retries', id, -1)
     redis.call('zadd', name..':queued', priority, id)
-    redis.call('publish', name, "queued:"..id)
+
+    redis.call('publish', name..':timeout', id)
+    redis.call('publish', name..':retried', id)
   else
     redis.call('zadd', name..':failed', now, id)
-    redis.call('publish', name, "failed:"..id)
+
+    redis.call('publish', name..':failed', id)
   end
 end

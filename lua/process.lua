@@ -21,7 +21,7 @@ if id then
   redis.call('zadd', name..':processing', expireat, id)
   redis.call('zrem', name..':queued', id)
 
-  redis.call('publish', name, 'processing:'..id)
+  redis.call('publish', name..':processing', id)
 
   return id
 

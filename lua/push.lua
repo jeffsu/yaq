@@ -27,7 +27,7 @@ else
   redis.call('hset', name..':json',     id, json)
   redis.call('hset', name..':priority', id, priority)
 
-  redis.call('publish', name, 'queued:'..id)
+  redis.call('publish', name..':queued', id)
 
   return true
 end
