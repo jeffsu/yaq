@@ -21,7 +21,6 @@ WATCH_INTERVAL = 5000
 
 NOOP = ->
 
-
 class Queue
   constructor: (@name, options) ->
     @retries = options.retries || 0
@@ -85,7 +84,6 @@ class Queue
         processing: results[1]
         failed:     results[2]
         completed:  results[3]
-    
 
   clean: (cb=NOOP) ->
     @redis.eval code.clean, 2, @name, Date.now(), cb
@@ -115,7 +113,6 @@ class Queue
     Job.find(@, id, cb)
 
   handleMessage: (channel, data) ->
-    console.log channel, data
     if m = channel.match(/^([^:]+):(.*)$/)
       @emit m[2], data
 
