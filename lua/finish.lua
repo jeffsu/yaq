@@ -7,11 +7,11 @@ local err  = KEYS[4]
 if redis.call('zscore', name..':processing', id) then
   redis.call('zrem', name..':processing', id)
 else
-  return 0
+  return "nonexistent"
 end
 
 -- errored, inc failed and possibly retry
-if err then
+if err ~= "" then
   local retries = tonumber(redis.call('hget', name..':retries', id))
   redis.call('hincrby', name..':failures', id, 1)
 

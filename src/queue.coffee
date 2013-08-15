@@ -103,7 +103,7 @@ class Queue
       cb(err, if res then job else false)
 
   # O(1)
-  process: (cb) ->
+  process: (cb=NOOP) ->
     @redis.eval code.process, 4, @name, HOSTNAME, PID, Date.now(), (err, id) =>
       return cb(err) if err
       if id
@@ -115,8 +115,9 @@ class Queue
     Job.find(@, id, cb)
 
   handleMessage: (channel, data) ->
-    if m = channel.match(/^(\w+):(.*)$/)
-      @emit m[1], m[2]
+    console.log channel, data
+    if m = channel.match(/^([^:]+):(.*)$/)
+      @emit m[2], data
 
   on: ->
     message = arguments[0]

@@ -2,7 +2,7 @@ async = require 'async'
 yaq   = require '../src'
 
 describe "Queue Basics", ->
-  queue = yaq.create('test')
+  queue = yaq.create('test-basics')
   params = { data: {}, timeout: 10000, priority: 'med', retries: 1 }
   
   beforeEach (done) ->
@@ -29,7 +29,7 @@ describe "Queue Basics", ->
       (cb)         -> queue.push(params, cb)
       (job, cb)    -> queue.process(cb)
       (job, cb)    -> job.finish('error', cb)
-      (passed, cb) -> queue.process(cb)
+      (cb)         -> queue.process(cb)
     ], (err, job) ->
       expect(job).toBeTruthy()
       done()
@@ -39,9 +39,9 @@ describe "Queue Basics", ->
       (cb)         -> queue.push(params, cb)
       (job, cb)    -> queue.process(cb)
       (job, cb)    -> job.finish('error', cb)
-      (passed, cb) -> queue.process(cb)
+      (cb)         -> queue.process(cb)
       (job, cb)    -> job.finish('error', cb)
-      (passed, cb) -> queue.process(cb)
+      (cb)         -> queue.process(cb)
     ], (err, job) ->
       expect(job).toBeFalsy()
       done()

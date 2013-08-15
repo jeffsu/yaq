@@ -48,9 +48,15 @@ class Job extends EventEmitter
   toJSON: ->
     JSON.stringify(@me)
 
-  finish: (err=null, cb=NOOP) ->
-    @q.redis.eval code.finish, 4, @q.name, @id, Date.now(), err, (err, res) ->
-      cb(err, res == 1)
+  finish: (error, cb) ->
+    if typeof err == 'function'
+      cb    = err
+      error = null
+
+    error ||= ""
+
+    @q.redis.eval code.finish, 4, @q.name, @id, Date.now(), error, (err, passed) ->
+      cb(err || passed != 1) if cb
 
 
 Job.find = (q, id, cb) ->
